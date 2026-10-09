@@ -1,0 +1,234 @@
+openapi: 3.0.3
+info:
+  title: Cosmo Cats Marketplace API
+  version: 1.0.0
+  description: API for managing products in the Cosmo Cats marketplace
+
+paths:
+  /api/products:
+    get:
+      summary: Get products
+      description: Returns a page of products ordered by ID
+      parameters:
+        - name: page
+          in: query
+          description: Page number, starting from 0
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: Number of products per page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A page of products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPage'
+        '400':
+          description: Invalid pagination parameters
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    post:
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Product created
+          headers:
+            Location:
+              description: URI of the created product
+              schema:
+                type: string
+                example: /api/products/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid product data or malformed request body
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /api/products/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Positive product identifier
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+    get:
+      summary: Get product by ID
+      responses:
+        '200':
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid product ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Product not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    put:
+      summary: Replace a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Product replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid product ID, product data, or malformed request body
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Product not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    delete:
+      summary: Delete a product
+      responses:
+        '204':
+          description: Product deleted; no response body
+        '400':
+          description: Invalid product ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Product not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+components:
+  schemas:
+    ProductInput:
+      type: object
+      description: Product data supplied when creating or replacing a product; ID is assigned by the server
+      required:
+        - name
+        - price
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Cosmic cat food
+        price:
+          type: number
+          minimum: 0
+          description: Product price; represented as BigDecimal in Java
+          example: 19.99
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - price
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Cosmic cat food
+        price:
+          type: number
+          minimum: 0
+          description: Product price; represented as BigDecimal in Java
+          example: 19.99
+    ProductPage:
+      type: object
+      required:
+        - content
+        - page
+        - size
+        - totalElements
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        page:
+          type: integer
+          minimum: 0
+          example: 0
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 20
+        totalElements:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 42
+    Problem:
+      type: object
+      description: Error response following RFC 9457
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          example: about:blank
+        title:
+          type: string
+          example: Bad Request
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+          example: page must be greater than or equal to 0
+        instance:
+          type: string
+          format: uri-reference
+          example: /api/products
