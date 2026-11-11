@@ -1,9 +1,10 @@
-name: Lab 2 tests and coverage
+name: Tests and database integration
 
 on:
   pull_request:
     branches:
       - lab1-draft
+      - lab2-tests
       - main
   workflow_dispatch:
 

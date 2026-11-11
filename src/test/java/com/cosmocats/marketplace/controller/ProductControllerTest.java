@@ -80,6 +80,16 @@ class ProductControllerTest {
         verifyNoInteractions(service);
     }
 
+    // Test case: Prices with more than two decimal places are rejected.
+    @Test
+    void test_create_returnsBadRequest_whenPriceHasTooManyDecimals() throws Exception {
+        MockHttpServletResponse response = send(post("/api/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Cosmic cat food\",\"price\":1.999}"));
+
+        assertValidationProblem(response, "price", "A price with three decimal places");
+        verifyNoInteractions(service);
+    }
     // Test case: A missing required price is rejected.
     @Test
     void test_create_returnsBadRequest_whenPriceIsMissing() throws Exception {

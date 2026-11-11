@@ -68,6 +68,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
 
+        '404':
+          description: Category not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Product data conflicts with a database constraint
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /api/products/{id}:
     parameters:
       - name: id
@@ -126,6 +138,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+        '409':
+          description: Product data conflicts with a database constraint
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
     delete:
       summary: Delete a product
       responses:
@@ -144,6 +162,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
 
+        '409':
+          description: Product is still referenced by an order
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
 components:
   schemas:
     ProductInput:
@@ -159,9 +183,16 @@ components:
           maxLength: 100
           pattern: '[\s\S]*\S[\s\S]*'
           example: Cosmic cat food
+        categoryId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+          description: Optional ID of an existing category
         price:
           type: number
           minimum: 0
+          multipleOf: 0.01
           description: Product price; represented as BigDecimal in Java
           example: 19.99
     Product:
@@ -182,9 +213,16 @@ components:
           maxLength: 100
           pattern: '[\s\S]*\S[\s\S]*'
           example: Cosmic cat food
+        categoryId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+          description: Optional ID of an existing category
         price:
           type: number
           minimum: 0
+          multipleOf: 0.01
           description: Product price; represented as BigDecimal in Java
           example: 19.99
     ProductPage:
