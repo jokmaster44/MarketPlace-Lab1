@@ -34,13 +34,13 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ProductDto getProduct(@PathVariable @Min(1) long id) {
-        return productMapper.toDto(productService.findById(id));
+        return productMapper.toProductDto(productService.findById(id));
     }
 
     @PostMapping
     public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody ProductRequest request,
                                                     HttpServletRequest httpRequest) {
-        ProductDto createdProduct = productMapper.toDto(productService.create(productMapper.toDomain(request)));
+        ProductDto createdProduct = productMapper.toProductDto(productService.create(productMapper.toDomain(request)));
         return ResponseEntity.created(URI.create(httpRequest.getRequestURI() + "/" + createdProduct.id()))
                 .body(createdProduct);
     }
@@ -48,7 +48,7 @@ public class ProductController {
     @PutMapping("/{id}")
     public ProductDto updateProduct(@PathVariable @Min(1) long id,
                              @Valid @RequestBody ProductRequest request) {
-        return productMapper.toDto(productService.update(id, productMapper.toDomain(request)));
+        return productMapper.toProductDto(productService.update(id, productMapper.toDomain(request)));
     }
 
     @DeleteMapping("/{id}")
@@ -61,7 +61,7 @@ public class ProductController {
     public ProductPageDto listProducts(@RequestParam(defaultValue = "0") @Min(0) int page,
                                @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return new ProductPageDto(
-                productService.findPage(page, size).stream().map(productMapper::toDto).toList(),
+                productService.findPage(page, size).stream().map(productMapper::toProductDto).toList(),
                 page,
                 size,
                 productService.count()
