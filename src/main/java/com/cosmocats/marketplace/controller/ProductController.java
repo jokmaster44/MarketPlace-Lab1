@@ -5,6 +5,7 @@ import com.cosmocats.marketplace.dto.ProductPageDto;
 import com.cosmocats.marketplace.dto.ProductRequest;
 import com.cosmocats.marketplace.mapper.ProductMapper;
 import com.cosmocats.marketplace.service.ProductService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -21,47 +22,49 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping({"/api/v1/products", "/api/products"})
 public class ProductController {
-    private final ProductService service;
-    private final ProductMapper mapper;
+    private final ProductService productService;
+    private final ProductMapper productMapper;
 
-    public ProductController(ProductService service, ProductMapper mapper) {
-        this.service = service;
-        this.mapper = mapper;
+    public ProductController(ProductService productService, ProductMapper productMapper) {
+        this.productService = productService;
+        this.productMapper = productMapper;
     }
 
     @GetMapping("/{id}")
-    public ProductDto get(@PathVariable @Min(1) long id) {
-        return mapper.toDto(service.findById(id));
+    public ProductDto getProduct(@PathVariable @Min(1) long id) {
+        return productMapper.toDto(productService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<ProductDto> create(@Valid @RequestBody ProductRequest request) {
-        ProductDto created = mapper.toDto(service.create(mapper.toDomain(request)));
-        return ResponseEntity.created(URI.create("/api/products/" + created.id())).body(created);
+    public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody ProductRequest request,
+                                                    HttpServletRequest httpRequest) {
+        ProductDto createdProduct = productMapper.toDto(productService.create(productMapper.toDomain(request)));
+        return ResponseEntity.created(URI.create(httpRequest.getRequestURI() + "/" + createdProduct.id()))
+                .body(createdProduct);
     }
 
     @PutMapping("/{id}")
-    public ProductDto update(@PathVariable @Min(1) long id,
+    public ProductDto updateProduct(@PathVariable @Min(1) long id,
                              @Valid @RequestBody ProductRequest request) {
-        return mapper.toDto(service.update(id, mapper.toDomain(request)));
+        return productMapper.toDto(productService.update(id, productMapper.toDomain(request)));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable @Min(1) long id) {
-        service.delete(id);
+    public ResponseEntity<Void> deleteProduct(@PathVariable @Min(1) long id) {
+        productService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public ProductPageDto list(@RequestParam(defaultValue = "0") @Min(0) int page,
+    public ProductPageDto listProducts(@RequestParam(defaultValue = "0") @Min(0) int page,
                                @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
         return new ProductPageDto(
-                service.findPage(page, size).stream().map(mapper::toDto).toList(),
+                productService.findPage(page, size).stream().map(productMapper::toDto).toList(),
                 page,
                 size,
-                service.count()
+                productService.count()
         );
     }
 }
